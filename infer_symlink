@@ -1,0 +1,32 @@
+#!/bin/bash
+
+cd /infer
+mkdir bin
+cd bin
+ln -s ../lib/infer/infer/bin/infer infer
+ln -s infer infer-analyze
+ln -s infer infer-capture
+ln -s infer infer-compile
+ln -s infer infer-debug
+ln -s infer infer-explore
+ln -s infer infer-help
+ln -s infer infer-report
+ln -s infer infer-reportdiff
+ln -s infer infer-run
+
+cd /infer/lib/infer/facebook-clang-plugins/clang/install/bin
+ln -s clang-13 clang
+ln -s clang clang++
+ln -s clang clang-cl
+ln -s clang clang-cpp
+
+cd /infer/lib/infer/infer/bin
+ln -s infer infer-analyze
+ln -s infer infer-capture
+ln -s infer infer-compile
+ln -s infer infer-debug
+ln -s infer infer-explore
+ln -s infer infer-help
+ln -s infer infer-report
+ln -s infer infer-reportdiff
+ln -s infer infer-run
