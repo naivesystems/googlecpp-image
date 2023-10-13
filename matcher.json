@@ -1,0 +1,15 @@
+{
+    "problemMatcher": [
+        {
+            "owner": "naivesystems-analyze",
+            "pattern": [
+                {
+                    "regexp": "^/src/(.+):(\\d+):\\s*(.+)$",
+                    "file": 1,
+                    "line": 2,
+                    "message": 3
+                }
+            ]
+        }
+    ]
+}
