@@ -14,6 +14,7 @@ ln -s /opt/naivesystems/bigmain /opt/naivesystems/misra/dir_4_7
 ln -s /opt/naivesystems/bigmain /opt/naivesystems/misra/dir_4_10
 ln -s /opt/naivesystems/bigmain /opt/naivesystems/misra/dir_4_11
 ln -s /opt/naivesystems/bigmain /opt/naivesystems/misra/dir_4_12
+ln -s /opt/naivesystems/bigmain /opt/naivesystems/misra/rule_1_1
 ln -s /opt/naivesystems/bigmain /opt/naivesystems/misra/rule_2_2
 ln -s /opt/naivesystems/bigmain /opt/naivesystems/misra/rule_2_3
 ln -s /opt/naivesystems/bigmain /opt/naivesystems/misra/rule_5_1

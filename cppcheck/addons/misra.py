@@ -479,7 +479,7 @@ def get_type_conversion_to_from(token):
 def getEssentialTypeCategory(expr):
     if not expr:
         return None
-    if expr.str == ',':
+    if expr.str == ',' or expr.str == '.':
         return getEssentialTypeCategory(expr.astOperand2)
     if expr.str in ('<', '<=', '==', '!=', '>=', '>', '&&', '||', '!'):
         return 'bool'
@@ -671,7 +671,7 @@ def getEssentialType(expr):
         e1 = getEssentialType(expr.astOperand1)
         return e1
 
-    elif expr.str == ',':
+    elif expr.str == ',' or expr.str == '.':
         return getEssentialType(expr.astOperand2)
 
     # function call as operand
@@ -1112,6 +1112,17 @@ def numberOfParentheses(tok1, tok2):
             return False
         tok1 = tok1.next
     return tok1 == tok2
+
+
+def hasExplicitPrecedence(tok1, tok2):
+    unpaired = 0
+    while tok1 and tok1 != tok2:
+        if tok1.str == '(':
+            unpaired = unpaired + 1
+        elif tok1.str == ')':
+            unpaired = unpaired - 1
+        tok1 = tok1.next
+    return unpaired != 0
 
 
 def findGotoLabel(gotoToken):
@@ -3192,13 +3203,8 @@ class MisraChecker:
             if not token.isArithmeticalOp:
                 continue
             parent = token.astParent
-            if parent is None:
+            if parent is None or parent.str == '=' or not parent.isOp:
                 continue
-            if not parent.isArithmeticalOp:
-                if not parent.isAssignmentOp:
-                    continue
-                if parent.str == '=':
-                    continue
             token_type = getEssentialType(token)
             if token_type is None:
                 continue
@@ -3228,12 +3234,9 @@ class MisraChecker:
                 continue
             if token.astOperand1.str != '~' and not token.astOperand1.astOperand2:
                 continue
-            if token.astOperand1.str == '~':
-                e2 = getEssentialTypeCategory(token.astOperand1.astOperand1)
-            else:
-                e2, e3 = getEssentialCategorylist(token.astOperand1.astOperand1, token.astOperand1.astOperand2)
-                if e2 != e3:
-                    continue
+            if is_constant_integer_expression(token.astOperand1):
+                continue
+            e2 = getEssentialTypeCategory(token.astOperand1)
             e1 = getEssentialTypeCategory(token)
             if e1 != e2:
                 self.reportError(token, 10, 8)
@@ -3496,11 +3499,11 @@ class MisraChecker:
             if p < 2 or p > 12:
                 continue
             p1 = getPrecedence(token.astOperand1)
-            if p < p1 <= 12 and numberOfParentheses(token.astOperand1, token):
+            if p < p1 <= 12 and not hasExplicitPrecedence(token.astOperand1, token):
                 self.reportError(token, 12, 1)
                 continue
             p2 = getPrecedence(token.astOperand2)
-            if p < p2 <= 12 and numberOfParentheses(token, token.astOperand2):
+            if p < p2 <= 12 and not hasExplicitPrecedence(token, token.astOperand2):
                 self.reportError(token, 12, 1)
                 continue
 
@@ -4440,11 +4443,31 @@ class MisraChecker:
                     if exp[pos1] == '#':
                         continue
                     if exp[pos1] not in '([,.':
+                        # check the token before the argument, like const qualified
+                        word_before = ""
+                        pos_before = pos1
+                        while pos_before > 0 and (exp[pos_before].isalnum() or exp[pos_before] == '_'):
+                            word_before = exp[pos_before] + word_before
+                            pos_before -= 1
+                        if isKeyword(word_before, data.standards.c):
+                            continue
                         reportErrorFunc(directive)
                         break
                     while pos2 < len(exp) and exp[pos2] == ' ':
                         pos2 += 1
                     if pos2 < len(exp) and exp[pos2] not in ')]#,':
+                        # ignore * as the pointer of type
+                        if exp[pos2] == "*":
+                            word_after_star = ""
+                            pos_after_star = pos2 + 1
+                            while pos_after_star < len(exp) and exp[pos_after_star] == ' ':
+                                pos_after_star += 1
+                            while pos_after_star < len(exp) and (exp[pos_after_star].isalnum() or exp[pos_after_star] == '_'):
+                                word_after_star += exp[pos_after_star]
+                                pos_after_star += 1
+                            directive_args = [a.strip() for a in d.args if a != arg]
+                            if word_after_star not in directive_args:
+                                continue
                         reportErrorFunc(directive)
                         break
 
@@ -4556,7 +4579,7 @@ class MisraChecker:
             if mo:
                 dir = mo.group(1)
             if dir not in ['define', 'elif', 'else', 'endif', 'error', 'if', 'ifdef', 'ifndef', 'include',
-                           'pragma', 'undef', 'warning']:
+                           'pragma', 'undef', 'warning'] and not (dir.startswith("include\"") or dir.startswith("include<")):
                 self.reportError(directive, 20, 13)
 
     def misra_20_14(self, data):

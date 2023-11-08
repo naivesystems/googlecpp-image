@@ -65,6 +65,15 @@ RUN pip install lxml==4.9.1
 RUN pip install jinja2
 COPY ProjectConverter /ProjectConverter
 
+# Install Cpplint
+RUN pip install -i https://mirrors.aliyun.com/pypi/simple/ flake8>=4.0.1
+RUN pip install -i https://mirrors.aliyun.com/pypi/simple/ flake8-polyfill
+RUN pip install -i https://mirrors.aliyun.com/pypi/simple/ pylint>=2.11.0
+RUN pip install -i https://mirrors.aliyun.com/pypi/simple/ tox>=3.0.0
+RUN pip install -i https://mirrors.aliyun.com/pypi/simple/ tox-pyenv
+RUN pip install -i https://mirrors.aliyun.com/pypi/simple/ importlib-metadata>=0.12
+COPY cpplint.py /opt/naivesystems/cpplint.py
+
 COPY "clang.gz" "/opt/naivesystems/clang.gz"
 RUN gunzip -f /opt/naivesystems/clang.gz
 COPY "clang-tidy.gz" "/opt/naivesystems/clang-tidy.gz"
